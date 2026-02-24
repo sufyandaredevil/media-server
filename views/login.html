@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEx - Login</title>
+    <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%231e1e1e'/%3E%3Cpath d='M40 30 L70 50 L40 70 Z' fill='%23007acc' stroke='%23007acc' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1>MEx Access</h1>
+            <form method="POST" action="/login">
+                {{ERROR}}
+                <input type="password" name="key" placeholder="Enter Access Key" autofocus required>
+                <button type="submit">Unlock</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
