@@ -43,6 +43,7 @@ Create a `.env` file in the root directory and set your access key:
 ```env
 MEX_ACCESS_KEY=your_secret_key_here
 ROOT_DIR="D:/Path/To/Your/Media"
+PORT=3000
 
 # Optional Security Settings
 LOGIN_COOLDOWN_MINUTES=15
@@ -68,8 +69,11 @@ Alternatively, if `ROOT_DIR` is defined in your `.env` file, you can start the s
 node server.js
 ```
 
+The server will be available at `http://localhost:3000` (defaults to port `80`) if not mention in `.env` file.
 
-The server will be available at `http://localhost:3000`.
+> [!TIP]
+> If you want to access your media server securely from anywhere without opening ports on your router, consider using [Tailscale](https://tailscale.com/). 
+
 
 ## Project Structure
 

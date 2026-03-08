@@ -20,7 +20,8 @@ const SESSION_TOKEN = ACCESS_KEY
   ? crypto.createHash('sha256').update(ACCESS_KEY).digest('hex')
   : null;
 
-const PORT = 3000;
+const PORT = parseInt(process.env.PORT || '80', 10);
+
 const LOGIN_COOLDOWN_MINUTES = parseInt(process.env.LOGIN_COOLDOWN_MINUTES || '15', 10);
 const MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5', 10);
 const SESSION_EXPIRY_DAYS = parseInt(process.env.SESSION_EXPIRY_DAYS || '30', 10);
