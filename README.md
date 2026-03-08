@@ -69,7 +69,7 @@ Alternatively, if `ROOT_DIR` is defined in your `.env` file, you can start the s
 node server.js
 ```
 
-The server will be available at `http://localhost:3000` (defaults to port `80`) if not mention in `.env` file.
+The server will be available at [http://localhost:3000](http://localhost:3000) (defaults to port `80` if not mention in `.env` file) 
 
 > [!TIP]
 > If you want to access your media server securely from anywhere without opening ports on your router, consider using [Tailscale](https://tailscale.com/). 
