@@ -42,7 +42,7 @@ Create a `.env` file in the root directory and set your access key:
 
 ```env
 MEX_ACCESS_KEY=your_secret_key_here
-MEX_ROOT_DIR="D:/Path/To/Your/Media"
+ROOT_DIR="D:/Path/To/Your/Media"
 
 # Optional Security Settings
 LOGIN_COOLDOWN_MINUTES=15
@@ -52,16 +52,22 @@ RATE_LIMIT_CLEANUP_MINUTES=5
 ```
 
 
+
 > [!NOTE]
 > If `MEX_ACCESS_KEY` is not set, the server will be publicly accessible.
-
-### Running the Server
 
 Start the server by providing the absolute path to your media directory:
 
 ```bash
 node server.js "D:/Path/To/Your/Media"
 ```
+
+Alternatively, if `ROOT_DIR` is defined in your `.env` file, you can start the server without any arguments:
+
+```bash
+node server.js
+```
+
 
 The server will be available at `http://localhost:3000`.
 
