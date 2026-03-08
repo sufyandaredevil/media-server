@@ -8,7 +8,10 @@ MEx is a lightweight, web-based media server designed for streaming your local v
 - **File Explorer**: A tree-view interface to navigate your media library with ease.
 - **Search**: Quickly find specific files within the current directory.
 - **Secure Access**: Optional access key authentication via environment variables.
+- **Login Rate Limiting**: Prevents brute-force attacks with configurable cooldowns and attempt limits.
+- **Activity Logging**: Real-time console logs for requests and server status using `morgan`.
 - **Subtitles Support**: Automatically detects and loads `.vtt` subtitle files for videos.
+
 - **Responsive Design**: Works beautifully on both desktop and mobile browsers.
 - **Customizable Exclusions**: Define rules to hide specific files or folders from the explorer.
 
@@ -16,7 +19,8 @@ MEx is a lightweight, web-based media server designed for streaming your local v
 
 - **Backend**: Node.js, Express
 - **Frontend**: Vanilla JavaScript, CSS, HTML
-- **Utilities**: `dotenv` (configuration), `cookie-parser` (authentication), `ignore` (file filtering)
+- **Utilities**: `dotenv` (configuration), `cookie-parser` (authentication), `ignore` (file filtering), `express-rate-limit` (security), `morgan` (logging)
+
 
 ## Getting Started
 
@@ -38,7 +42,15 @@ Create a `.env` file in the root directory and set your access key:
 
 ```env
 MEX_ACCESS_KEY=your_secret_key_here
+MEX_ROOT_DIR="D:/Path/To/Your/Media"
+
+# Optional Security Settings
+LOGIN_COOLDOWN_MINUTES=15
+MAX_LOGIN_ATTEMPTS=5
+SESSION_EXPIRY_DAYS=30
+RATE_LIMIT_CLEANUP_MINUTES=5
 ```
+
 
 > [!NOTE]
 > If `MEX_ACCESS_KEY` is not set, the server will be publicly accessible.
@@ -63,9 +75,11 @@ media-server/
 ├── utils/            # Helper functions (file system operations)
 ├── views/            # HTML templates (index, login)
 ├── config.js         # Centralized configuration
+├── rate-limits.json  # Persistent rate limit data
 ├── rules.json        # File exclusion patterns
 ├── server.js         # Application entry point
 └── package.json      # Dependencies and metadata
+
 ```
 
 ## Usage
