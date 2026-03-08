@@ -3,25 +3,63 @@ const router = express.Router();
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');
-const { ACCESS_KEY, SESSION_TOKEN, rootDir } = require('../config');
+const { ACCESS_KEY, SESSION_TOKEN, rootDir, LOGIN_COOLDOWN_MINUTES, MAX_LOGIN_ATTEMPTS, SESSION_EXPIRY_DAYS, RATE_LIMIT_CLEANUP_MINUTES } = require('../config');
 const { getDirectoryChildren, safeResolve, isPathAllowed, getMimeType } = require('../utils/fileUtils');
 const { authMiddleware } = require('../middleware/auth');
+const rateLimit = require('express-rate-limit');
+const JsonStore = require('../middleware/jsonStore');
+
+const jsonStore = new JsonStore(path.join(__dirname, '..', 'rate-limits.json'));
+
+const loginLimiter = rateLimit({
+  windowMs: LOGIN_COOLDOWN_MINUTES * 60 * 1000,
+  max: MAX_LOGIN_ATTEMPTS,
+  message: `Too many login attempts, please try again after ${LOGIN_COOLDOWN_MINUTES} minutes`,
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  store: jsonStore,
+});
+
+// Periodic cleanup of expired entries
+if (RATE_LIMIT_CLEANUP_MINUTES > 0) {
+  setInterval(() => {
+    if (typeof jsonStore.cleanup === 'function') {
+      jsonStore.cleanup();
+    }
+  }, RATE_LIMIT_CLEANUP_MINUTES * 60 * 1000);
+}
 
 router.get('/login', async (req, res) => {
   if (!SESSION_TOKEN || req.cookies.mex_session === SESSION_TOKEN) {
     return res.redirect('/');
   }
   const template = await fs.readFile(path.join(__dirname, '..', 'views', 'login.html'), 'utf8');
-  const errorHtml = req.query.error ? '<div class="error-msg">Invalid Access Key</div>' : '';
+  let errorHtml = '';
+  if (req.query.error === '1') {
+    errorHtml = '<div class="error-msg">Invalid Access Key</div>';
+  } else if (req.query.error === '2') {
+    errorHtml = `<div class="error-msg">Too many login attempts, please try again after ${LOGIN_COOLDOWN_MINUTES} minutes</div>`;
+  }
   res.send(template.replace('{{ERROR}}', errorHtml));
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   const { key } = req.body;
   if (key === ACCESS_KEY) {
-    res.cookie('mex_session', SESSION_TOKEN, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
+    // SUCCESS: Clear failed attempts for this IP
+    if (typeof jsonStore.resetKey === 'function') {
+      await jsonStore.resetKey(req.ip);
+    }
+    res.cookie('mex_session', SESSION_TOKEN, { maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000, httpOnly: true });
     res.redirect('/');
   } else {
+    // FAILURE: Check if they have reached the limit
+    const data = jsonStore._read();
+    const hits = data[req.ip] ? data[req.ip].totalHits : 0;
+
+    if (hits >= MAX_LOGIN_ATTEMPTS) {
+      return res.redirect(`/login?error=2`);
+    }
     res.redirect('/login?error=1');
   }
 });
@@ -59,6 +97,7 @@ router.get(/^\/stream\/(.*)/, async (req, res) => {
   try {
     const relPath = decodeURIComponent(req.params[0]);
     const filePath = safeResolve(relPath);
+    const isInitialRequest = !req.headers.range || req.headers.range === 'bytes=0-' || req.headers.range.startsWith('bytes=0-');
 
     const stat = await fs.stat(filePath);
     const ext = path.extname(filePath).toLowerCase();
